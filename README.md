@@ -1,15 +1,17 @@
-### Elm Pokedex
+# Elm Pokedex
 
-Create a Pokedex Elm application consuming this backend.
-https://pokeapi.co/
+Create a Pokedex Elm application consuming [this](https://pokeapi.co/) backend.
 
 Display the List of Pokemon
-  - number
-  - image
-  - name.
+
+- number
+- image
+- name.
+
 Just the first generation Pokemon (wink) (151 Pokemon)
 
 When selecting a Pokemon, you should display more information related to that Pokemon, such as:
+
 - Moves
 - Type
 - Base Experience
