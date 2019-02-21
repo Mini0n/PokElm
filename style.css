@@ -1,0 +1,28 @@
+body {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.pokElm {
+  border: 1px solid black;
+  width: 70%;
+  height: 100%;
+  margin: auto;
+}
+
+.poke-div-item {
+  border-bottom: 1px solid black;
+  padding: 2px 4px;
+}
+
+
+.pokeMenu {
+  width: 20%;
+  float: left;
+  border-right: 1px solid black;
+}
+
+
+.pokeMain {
+  width: 75%;
+  float: right;
+}
