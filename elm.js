@@ -4976,22 +4976,27 @@ var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
 			A2(elm$json$Json$Decode$field, key, valDecoder),
 			decoder);
 	});
-var author$project$Poke$Pokemon = F2(
-	function (name, id) {
-		return {id: id, name: name};
+var author$project$Poke$Pokemon = F3(
+	function (name, id, sprites) {
+		return {id: id, name: name, sprites: sprites};
 	});
 var elm$json$Json$Decode$int = _Json_decodeInt;
+var elm$json$Json$Decode$list = _Json_decodeList;
 var elm$json$Json$Decode$string = _Json_decodeString;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var author$project$Poke$pokeDecoder = A3(
 	NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-	'id',
-	elm$json$Json$Decode$int,
+	'sprites',
+	elm$json$Json$Decode$list(elm$json$Json$Decode$string),
 	A3(
 		NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-		'name',
-		elm$json$Json$Decode$string,
-		elm$json$Json$Decode$succeed(author$project$Poke$Pokemon)));
+		'id',
+		elm$json$Json$Decode$int,
+		A3(
+			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+			'name',
+			elm$json$Json$Decode$string,
+			elm$json$Json$Decode$succeed(author$project$Poke$Pokemon))));
 var elm$core$Result$mapError = F2(
 	function (f, result) {
 		if (result.$ === 'Ok') {
@@ -5880,36 +5885,53 @@ var author$project$Poke$getPokemon = function (pokeNumber) {
 			url: author$project$Poke$pokeAPI(pokeNumber)
 		});
 };
-var author$project$Poke$initialCmd = author$project$Poke$getPokemon(43);
+var author$project$Poke$initialCmd = author$project$Poke$getPokemon(140);
 var author$project$Poke$initialModel = {
-	pokeSelected: A2(author$project$Poke$Pokemon, 'Kabuto', 140),
+	pokeSelected: A3(author$project$Poke$Pokemon, 'Kabuto', 140, _List_Nil),
 	pokeSelectedId: 140
 };
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Poke$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'ClickedPokemon') {
-			var pokeNumber = msg.a;
-			return _Utils_Tuple2(
-				model,
-				author$project$Poke$getPokemon(pokeNumber));
-		} else {
-			if (msg.a.$ === 'Ok') {
-				var pokemon = msg.a.a;
+		switch (msg.$) {
+			case 'ClickedPokemon':
+				var pokeNumber = msg.a;
 				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{pokeSelected: pokemon}),
-					elm$core$Platform$Cmd$none);
-			} else {
-				var httpError = msg.a.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{pokeSelectedId: 66}),
-					elm$core$Platform$Cmd$none);
-			}
+					model,
+					author$project$Poke$getPokemon(pokeNumber));
+			case 'GetPokemon':
+				if (msg.a.$ === 'Ok') {
+					var pokemon = msg.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{pokeSelected: pokemon}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					var httpError = msg.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{pokeSelectedId: 66}),
+						elm$core$Platform$Cmd$none);
+				}
+			default:
+				if (msg.a.$ === 'Ok') {
+					var pokemon = msg.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{pokeSelectedId: 66}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					var httpError = msg.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{pokeSelectedId: 66}),
+						elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var elm$json$Json$Decode$map = _Json_map1;
@@ -5946,8 +5968,6 @@ var author$project$Poke$pokeDivInfo = function (model) {
 			]),
 		_List_fromArray(
 			[
-				elm$html$Html$text(
-				author$project$Poke$pokeAPI(model.pokeSelectedId)),
 				A2(
 				elm$html$Html$div,
 				_List_fromArray(
@@ -5956,7 +5976,18 @@ var author$project$Poke$pokeDivInfo = function (model) {
 					]),
 				_List_fromArray(
 					[
-						elm$html$Html$text(model.pokeSelected.name)
+						elm$html$Html$text(
+						'[' + (elm$core$String$fromInt(model.pokeSelected.id) + ('] ' + model.pokeSelected.name)))
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('poke-div-sprites')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('ola k ase')
 					]))
 			]));
 };

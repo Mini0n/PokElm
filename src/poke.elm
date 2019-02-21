@@ -8,18 +8,18 @@ module Poke exposing (main)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, id)
-import Html.Events exposing (onClick)
+import Html.Events exposing (on, onClick)
 import Http
-import Json.Decode exposing (Decoder, field, bool, int, list, string, succeed)
+import Json.Decode exposing (Decoder, bool, field, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (optional, required)
 
 
 type alias Pokemon =
     { name : String
-
-    -- , sprites : List String
-    -- , pokeData : PokeData
     , id : Int
+    , sprites : List String
+
+    -- , pokeData : PokeData
     }
 
 
@@ -46,20 +46,21 @@ type alias PokeMove =
 
 
 type alias Model =
-    { pokeSelectedId : Int,
-      pokeSelected   : Pokemon
+    { pokeSelectedId : Int
+    , pokeSelected : Pokemon
     }
 
 
 type Msg
     = ClickedPokemon Int
     | GetPokemon (Result Http.Error Pokemon)
+    | InitPokemon (Result Http.Error Pokemon)
 
 
 initialModel : Model
 initialModel =
     { pokeSelectedId = 140
-      , pokeSelected   = Pokemon "Kabuto" 140
+    , pokeSelected = Pokemon "Kabuto" 140 []
     }
 
 
@@ -75,12 +76,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedPokemon pokeNumber ->
-            (  model , getPokemon pokeNumber )
+            ( model, getPokemon pokeNumber )
 
         GetPokemon (Ok pokemon) ->
             ( { model | pokeSelected = pokemon }, Cmd.none )
 
         GetPokemon (Err httpError) ->
+            ( { model | pokeSelectedId = 66 }, Cmd.none )
+
+        InitPokemon (Ok pokemon) ->
+            ( { model | pokeSelectedId = 66 }, Cmd.none )
+
+        InitPokemon (Err httpError) ->
             ( { model | pokeSelectedId = 66 }, Cmd.none )
 
 
@@ -96,7 +103,12 @@ main =
 
 initialCmd : Cmd Msg
 initialCmd =
-    getPokemon 43
+    getPokemon 140
+
+
+onCreatePokeDivItem : msg -> Attribute msg
+onCreatePokeDivItem message =
+    on "load" (Json.Decode.succeed message)
 
 
 pokeDivList =
@@ -107,34 +119,34 @@ pokeDivList =
 pokeDivItem pokeNumber =
     div [ class "poke-div-item", onClick (ClickedPokemon pokeNumber) ]
         [ text (String.fromInt pokeNumber) ]
-        -- [ text (getPokemon pokeNumber).name ]
+
+
+
+-- [ text (getPokemon pokeNumber).name ]
 
 
 getPokemon pokeNumber =
-    Http.get {
-        url = (pokeAPI pokeNumber),
-        expect = Http.expectJson GetPokemon pokeDecoder
-    }
+    Http.get
+        { url = pokeAPI pokeNumber
+        , expect = Http.expectJson GetPokemon pokeDecoder
+        }
 
 
 pokeDecoder : Decoder Pokemon
 pokeDecoder =
     succeed Pokemon
-    |> required "name" string
-    |> required "id" int
-        -- (field "id" int)
-
-
-
--- |> required "sprites" list string
-
-
+        |> required "name" string
+        |> required "id" int
+        |> required "sprites" (list string)
 
 
 pokeDivInfo model =
-    div [ class "poke-div-info" ] [
-        text (pokeAPI model.pokeSelectedId),
-        div [ class "poke-div-name "][ text (model.pokeSelected.name) ]
+    div [ class "poke-div-info" ]
+        [ div [ class "poke-div-name " ]
+            [ text ("[" ++ String.fromInt model.pokeSelected.id ++ "] " ++ model.pokeSelected.name) ]
+        , div [ class "poke-div-sprites" ]
+            [ text "ola k ase" ]
+            -- [ text model.pokeSelected.sprites ]
         ]
 
 
