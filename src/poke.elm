@@ -17,7 +17,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 type alias Pokemon =
     { name : String
     , id : Int
-    , sprites : List String
+    -- , sprites : List String
 
     -- , pokeData : PokeData
     }
@@ -54,13 +54,13 @@ type alias Model =
 type Msg
     = ClickedPokemon Int
     | GetPokemon (Result Http.Error Pokemon)
-    | InitPokemon (Result Http.Error Pokemon)
+    -- | InitPokemon (Result Http.Error Pokemon)
 
 
 initialModel : Model
 initialModel =
     { pokeSelectedId = 140
-    , pokeSelected = Pokemon "Kabuto" 140 []
+    , pokeSelected = Pokemon "Kabuto" 140 --[]
     }
 
 
@@ -84,11 +84,11 @@ update msg model =
         GetPokemon (Err httpError) ->
             ( { model | pokeSelectedId = 66 }, Cmd.none )
 
-        InitPokemon (Ok pokemon) ->
-            ( { model | pokeSelectedId = 66 }, Cmd.none )
+        -- InitPokemon (Ok pokemon) ->
+        --     ( { model | pokeSelectedId = 66 }, Cmd.none )
 
-        InitPokemon (Err httpError) ->
-            ( { model | pokeSelectedId = 66 }, Cmd.none )
+        -- InitPokemon (Err httpError) ->
+        --     ( { model | pokeSelectedId = 66 }, Cmd.none )
 
 
 main : Program () Model Msg
@@ -137,7 +137,7 @@ pokeDecoder =
     succeed Pokemon
         |> required "name" string
         |> required "id" int
-        |> required "sprites" (list string)
+        -- |> required "sprites" (list string)
 
 
 pokeDivInfo model =
