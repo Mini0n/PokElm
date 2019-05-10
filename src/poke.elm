@@ -14,12 +14,29 @@ import Json.Decode exposing (Decoder, bool, field, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (optional, required)
 
 
+type alias PokeItemAll =
+    { pokes : List PokeItem
+    }
+
+
+type alias PokeItem =
+    { name : String
+    , url : String
+    }
+
+
 type alias Pokemon =
     { name : String
     , id : Int
-    -- , sprites : List String
+    , sprites : PokeSprite
 
     -- , pokeData : PokeData
+    }
+
+
+type alias PokeSprite =
+    { front : String
+    , back : String
     }
 
 
@@ -48,19 +65,25 @@ type alias PokeMove =
 type alias Model =
     { pokeSelectedId : Int
     , pokeSelected : Pokemon
+    , pokeListAll : PokeItemAll
     }
 
 
 type Msg
     = ClickedPokemon Int
     | GetPokemon (Result Http.Error Pokemon)
-    -- | InitPokemon (Result Http.Error Pokemon)
+    | GetPokemonAll (Result Http.Error PokeItemAll)
+
+
+
+-- | InitPokemon (Result Http.Error Pokemon)
 
 
 initialModel : Model
 initialModel =
     { pokeSelectedId = 140
-    , pokeSelected = Pokemon "Kabuto" 140 --[]
+    , pokeSelected = Pokemon "Kabuto" 140 (PokeSprite "" "")
+    , pokeListAll = PokeItemAll []
     }
 
 
@@ -84,11 +107,18 @@ update msg model =
         GetPokemon (Err httpError) ->
             ( { model | pokeSelectedId = 66 }, Cmd.none )
 
-        -- InitPokemon (Ok pokemon) ->
-        --     ( { model | pokeSelectedId = 66 }, Cmd.none )
+        GetPokemonAll (Ok pokemons) ->
+            ( { model | pokeListAll = pokemons }, Cmd.none )
 
-        -- InitPokemon (Err httpError) ->
-        --     ( { model | pokeSelectedId = 66 }, Cmd.none )
+        GetPokemonAll (Err httpError) ->
+            ( { model | pokeSelectedId = 66 }, Cmd.none )
+
+
+
+-- InitPokemon (Ok pokemon) ->
+--     ( { model | pokeSelectedId = 66 }, Cmd.none )
+-- InitPokemon (Err httpError) ->
+--     ( { model | pokeSelectedId = 66 }, Cmd.none )
 
 
 main : Program () Model Msg
@@ -103,12 +133,7 @@ main =
 
 initialCmd : Cmd Msg
 initialCmd =
-    getPokemon 140
-
-
-onCreatePokeDivItem : msg -> Attribute msg
-onCreatePokeDivItem message =
-    on "load" (Json.Decode.succeed message)
+    Cmd.none
 
 
 pokeDivList =
@@ -121,10 +146,6 @@ pokeDivItem pokeNumber =
         [ text (String.fromInt pokeNumber) ]
 
 
-
--- [ text (getPokemon pokeNumber).name ]
-
-
 getPokemon pokeNumber =
     Http.get
         { url = pokeAPI pokeNumber
@@ -132,27 +153,67 @@ getPokemon pokeNumber =
         }
 
 
+
+-- getPokemonAll =
+--     Http.get
+--         { url = pokesAPIAll
+--         , expect = Http.expectJson GetPokemonAll pokeDecoderAll
+--         }
+
+
 pokeDecoder : Decoder Pokemon
 pokeDecoder =
     succeed Pokemon
         |> required "name" string
         |> required "id" int
-        -- |> required "sprites" (list string)
+        |> required "sprites" pokeSpriteDecoder
+
+
+pokeSpriteDecoder : Decoder PokeSprite
+pokeSpriteDecoder =
+    succeed PokeSprite
+        |> required "front_default" string
+        |> required "back_default" string
 
 
 pokeDivInfo model =
     div [ class "poke-div-info" ]
         [ div [ class "poke-div-name " ]
-            [ text ("[" ++ String.fromInt model.pokeSelected.id ++ "] " ++ model.pokeSelected.name) ]
+            [ text ("[" ++ pokePrintId model.pokeSelected.id ++ "] " ++ pokePrintName model.pokeSelected.name) ]
         , div [ class "poke-div-sprites" ]
-            [ text "ola k ase" ]
-            -- [ text model.pokeSelected.sprites ]
+            [ text model.pokeSelected.sprites.front ]
         ]
+
+
+pokePrintId : Int -> String
+pokePrintId pokeId =
+    String.fromInt pokeId
+
+
+pokePrintName : String -> String
+pokePrintName pokeName =
+    String.toUpper (String.slice 0 1 pokeName) ++ String.slice 1 (String.length pokeName) pokeName
+
+
+
+-- pokeDecoderAll : Decoder PokeItemAll
+-- pokeDecoderAll =
+--     succeed PokeItemAll
+--         |> required "result" list pokeItemDecoder
+-- pokeItemDecoder : Decoder PokeItem
+-- pokeItemDecoder =
+--     succeed PokeItem
+--         |> required "name" string
 
 
 pokeAPI : Int -> String
 pokeAPI pokeNumber =
     "https://pokeapi.co/api/v2/pokemon/" ++ String.fromInt pokeNumber
+
+
+pokesAPIAll : String
+pokesAPIAll =
+    "https://pokeapi.co/api/v2/pokemon?limit=151"
 
 
 pokeNumsGen : List Int
