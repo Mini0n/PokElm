@@ -106,7 +106,7 @@ init _ =
       , pokeFullLoadStatus = LoadingFull
       }
     , Http.get
-        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.j6son"
+        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
         , expect = Http.expectJson GotPokeList pokeListDecoder
         }
     )
@@ -227,7 +227,7 @@ update msg model =
               }
             , if newPokeNum then
                 Http.get
-                    { url = pokeProxy ++ "https://db.pokemongohub.net/api/pokemon/" ++ poke.num ++ "/"
+                    { url = pokeProxy ++ "https://db.pokemongohub.net/api/pokemon2/" ++ poke.num ++ "/"
                     , expect = Http.expectJson GotPokeFull pokeFullDecoder
                     }
 
@@ -282,7 +282,6 @@ view model =
                                 , style "border" "none"
                                 , style "width" "100%"
                                 , style "outline" "none"
-                                , style "font-family" "monospace"
                                 , onInput PokeSearch
                                 , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
                                 ]
@@ -291,8 +290,6 @@ view model =
                         , div
                             [ style "margin-top" "8px"
                             , style "border" "1px solid black"
-                            , style "padding" "4px"
-                            , style "font-family" "monospace"
                             , style "display"
                                 (if String.isEmpty model.selectedPokeNum then
                                     "none"
@@ -303,7 +300,7 @@ view model =
                             ]
                             [ pokeFullView model ]
                         ]
-                    , pre
+                    , div
                         [ style "border-top-style" "solid"
                         , style "border-top-color" "black"
                         , style "border-top-width" "1px"
@@ -344,11 +341,11 @@ statusViewLoading displayText =
 
 statusViewError : String -> Http.Error -> Html Msg
 statusViewError displayText error =
-    div [ class "row text-center" ]
-        [ div [ class "col" ]
-            [ div [ class "col p-3" ] [ text displayText ]
-            , div [ class "col p-3" ] [ img [ src "https://vignette.wikia.nocookie.net/es.pokemon/images/4/4c/Kabuto_NB.gif" ] [] ]
-            , pre [ class "col p-3 text-danger" ] [ text (Debug.toString error) ]
+    div [ class "container" ]
+        [ div [ class "row text-center" ]
+            [ div [ class "col-12 py-3" ] [ text displayText ]
+            , div [ class "col-12 py-2" ] [ img [ src "https://vignette.wikia.nocookie.net/es.pokemon/images/4/4c/Kabuto_NB.gif" ] [] ]
+            , div [ class "col-12 pt-3" ] [ pre [ class "text-danger text-truncate" ] [ text (String.left 143 (Debug.toString error)) ] ]
             ]
         ]
 
