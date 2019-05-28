@@ -61,6 +61,7 @@ type alias Pokemon =
     , flee_rate : String
     , prim_atks : String
     , secu_atks : String
+    , thumb : String
     }
 
 
@@ -170,6 +171,7 @@ pokeDecoder =
         |> required "field_flee_rate" string
         |> required "field_primary_moves" string
         |> required "field_secondary_moves" string
+        |> required "pokemon_image_small" string
 
 
 
@@ -385,7 +387,7 @@ pokeDiv poke model =
             [ style "width" "70px"
             , style "display" "grid"
             ]
-            [ img [ src poke.img, width 50, style "margin" "auto" ] []
+            [ img [ src (pokeThumb poke.thumb), width 35, style "margin" "auto" ] []
             ]
         , div
             [ style "width" "78%"
@@ -456,3 +458,25 @@ pokeStringEvos evos =
 pokeProxy : String
 pokeProxy =
     "https://api.codetabs.com/v1/proxy?quest="
+
+
+pokeThumb : String -> String
+pokeThumb imgStr =
+    let
+        start =
+            case List.head (String.indexes "/sites" imgStr) of
+                Nothing ->
+                    0
+
+                Just num ->
+                    num
+
+        end =
+            case List.head (String.indexes ".png" imgStr) of
+                Nothing ->
+                    0
+
+                Just num ->
+                    num + 4
+    in
+    "https://pokemongo.gamepress.gg" ++ String.slice start end imgStr
