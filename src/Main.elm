@@ -81,8 +81,7 @@ type alias PokeFull =
     , weight : Float
     , height : Float
     , weather : List String
-
-    -- cpList : PokeFullCPList
+    , cpList : PokeFullCPList
     }
 
 
@@ -107,7 +106,7 @@ init _ =
       , pokeFullLoadStatus = LoadingFull
       }
     , Http.get
-        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
+        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.j6son"
         , expect = Http.expectJson GotPokeList pokeListDecoder
         }
     )
@@ -136,10 +135,7 @@ pokeFullDecoder =
         |> optional "weight" float -1.0
         |> optional "height" float -1.0
         |> optional "weatherInfluences" (list string) []
-
-
-
--- |> custom (JD.at "CPs" (PokeFullCPList pokeFullCPListDecoder))
+        |> custom (JD.field "CPs" pokeFullCPListDecoder)
 
 
 pokeFullCPListDecoder : Decoder PokeFullCPList
@@ -263,58 +259,66 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    case model.pokeLoadStatus of
-        Failure error ->
-            text "pokes failed :c"
-
-        Loading ->
-            text "Loading..."
-
-        Success pokesList ->
-            div [ class "container bg-light" ]
-                [ div
-                    [ class "sticky-top bg-light pb-2 pt-2"
+    div [ class "container" ]
+        [ case model.pokeLoadStatus of
+            Failure error ->
+                div [ class "row text-center" ]
+                    [ div [ class "col" ]
+                        [ div [ class "col p-3" ] [ text "Loading Pokemons Failed" ]
+                        , div [ class "col p-3" ] [ img [ src "https://vignette.wikia.nocookie.net/es.pokemon/images/4/4c/Kabuto_NB.gif" ] [] ]
+                        , pre [ class "col p-3 text-danger" ] [ text (Debug.toString error) ]
+                        ]
                     ]
+
+            Loading ->
+                loadingView "Loading Pokemons"
+
+            Success pokesList ->
+                div [ class "container bg-light" ]
                     [ div
-                        [ style "border" "1px solid black"
-                        , style "padding" "4px"
+                        [ class "sticky-top bg-light pb-2 pt-2"
                         ]
-                        [ input
-                            [ class "bg-light"
-                            , placeholder "search"
-                            , style "border" "none"
-                            , style "width" "100%"
-                            , style "outline" "none"
-                            , style "font-family" "monospace"
-                            , onInput PokeSearch
-                            , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
+                        [ div
+                            [ style "border" "1px solid black"
+                            , style "padding" "4px"
                             ]
-                            []
-                        ]
-                    , div
-                        [ style "margin-top" "8px"
-                        , style "border" "1px solid black"
-                        , style "padding" "4px"
-                        , style "font-family" "monospace"
-                        , style "display"
-                            (if String.isEmpty model.selectedPokeNum then
-                                "none"
+                            [ input
+                                [ class "bg-light"
+                                , placeholder "search"
+                                , style "border" "none"
+                                , style "width" "100%"
+                                , style "outline" "none"
+                                , style "font-family" "monospace"
+                                , onInput PokeSearch
+                                , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
+                                ]
+                                []
+                            ]
+                        , div
+                            [ style "margin-top" "8px"
+                            , style "border" "1px solid black"
+                            , style "padding" "4px"
+                            , style "font-family" "monospace"
+                            , style "display"
+                                (if String.isEmpty model.selectedPokeNum then
+                                    "none"
 
-                             else
-                                ""
-                            )
+                                 else
+                                    ""
+                                )
+                            ]
+                            [ pokeFullView model ]
                         ]
-                        [ pokeFullView model ]
+                    , pre
+                        [ style "border-top-style" "solid"
+                        , style "border-top-color" "black"
+                        , style "border-top-width" "1px"
+                        , style "margin-top" "8px"
+                        ]
+                      <|
+                        pokeListDiv pokesList model
                     ]
-                , pre
-                    [ style "border-top-style" "solid"
-                    , style "border-top-color" "black"
-                    , style "border-top-width" "1px"
-                    , style "margin-top" "8px"
-                    ]
-                  <|
-                    pokeListDiv pokesList model
-                ]
+        ]
 
 
 pokeFullView : Model -> Html Msg
@@ -328,12 +332,7 @@ pokeFullView model =
                 ]
 
         LoadingFull ->
-            div []
-                [ div [ class "text-center mt-2" ] [ text "Loading Pokemon..." ]
-                , div [ class "text-center m-4" ]
-                    [ div [ class "spinner-border text-dark" ] []
-                    ]
-                ]
+            loadingView "Loading Pokemon"
 
         SuccessFull pokeFull ->
             div []
@@ -341,6 +340,18 @@ pokeFullView model =
                 , div [ style "text-align" "center" ] [ h2 [ style "margin" "0px" ] [ text pokeFull.name ] ]
                 , div [ style "padding" "8px 4px" ] [ text pokeFull.desc ]
                 ]
+
+
+loadingView : String -> Html Msg
+loadingView displayText =
+    div []
+        [ div [ class "text-center mt-2" ] [ text displayText ]
+        , div [ class "text-center m-4" ]
+            [ div [ class "spinner-border text-dark" ] []
+            ]
+        ]
+
+
 
 
 pokeDiv : Pokemon -> Model -> Html Msg
