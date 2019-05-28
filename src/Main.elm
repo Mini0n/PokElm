@@ -227,7 +227,7 @@ update msg model =
               }
             , if newPokeNum then
                 Http.get
-                    { url = pokeProxy ++ "https://db.pokemongohub.net/api/pokemon2/" ++ poke.num ++ "/"
+                    { url = pokeProxy ++ "https://db.pokemongohub.net/api/pokemon/" ++ poke.num ++ "/"
                     , expect = Http.expectJson GotPokeFull pokeFullDecoder
                     }
 
@@ -331,10 +331,10 @@ pokeFullView model =
 
 statusViewLoading : String -> Html Msg
 statusViewLoading displayText =
-    div []
-        [ div [ class "text-center mt-2" ] [ text displayText ]
-        , div [ class "text-center m-4" ]
-            [ div [ class "spinner-border text-dark" ] []
+    div [ class "container" ]
+        [ div [ class "row text-center" ]
+            [ div [ class "col-12 py-4" ] [ text displayText ]
+            , div [ class "col-12 pb-4" ] [ div [ class "spinner-border text-dark" ] [] ]
             ]
         ]
 
