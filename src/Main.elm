@@ -262,16 +262,10 @@ view model =
     div [ class "container" ]
         [ case model.pokeLoadStatus of
             Failure error ->
-                div [ class "row text-center" ]
-                    [ div [ class "col" ]
-                        [ div [ class "col p-3" ] [ text "Loading Pokemons Failed" ]
-                        , div [ class "col p-3" ] [ img [ src "https://vignette.wikia.nocookie.net/es.pokemon/images/4/4c/Kabuto_NB.gif" ] [] ]
-                        , pre [ class "col p-3 text-danger" ] [ text (Debug.toString error) ]
-                        ]
-                    ]
+                statusViewError "Loading Pokemons Failed" error
 
             Loading ->
-                loadingView "Loading Pokemons"
+                statusViewLoading "Loading Pokemons"
 
             Success pokesList ->
                 div [ class "container bg-light" ]
@@ -325,14 +319,10 @@ pokeFullView : Model -> Html Msg
 pokeFullView model =
     case model.pokeFullLoadStatus of
         FailureFull error ->
-            div []
-                [ text "Loading Pokemon information failed :("
-                , br [] []
-                , text (Debug.toString error)
-                ]
+            statusViewError "Loading Pokemon Info Failed" error
 
         LoadingFull ->
-            loadingView "Loading Pokemon"
+            statusViewLoading "Loading Pokemon"
 
         SuccessFull pokeFull ->
             div []
@@ -342,8 +332,8 @@ pokeFullView model =
                 ]
 
 
-loadingView : String -> Html Msg
-loadingView displayText =
+statusViewLoading : String -> Html Msg
+statusViewLoading displayText =
     div []
         [ div [ class "text-center mt-2" ] [ text displayText ]
         , div [ class "text-center m-4" ]
@@ -352,6 +342,15 @@ loadingView displayText =
         ]
 
 
+statusViewError : String -> Http.Error -> Html Msg
+statusViewError displayText error =
+    div [ class "row text-center" ]
+        [ div [ class "col" ]
+            [ div [ class "col p-3" ] [ text displayText ]
+            , div [ class "col p-3" ] [ img [ src "https://vignette.wikia.nocookie.net/es.pokemon/images/4/4c/Kabuto_NB.gif" ] [] ]
+            , pre [ class "col p-3 text-danger" ] [ text (Debug.toString error) ]
+            ]
+        ]
 
 
 pokeDiv : Pokemon -> Model -> Html Msg
