@@ -290,15 +290,8 @@ view model =
                                 []
                             ]
                         , div
-                            [ style "margin-top" "8px"
-                            , style "border" "1px solid black"
-                            , style "display"
-                                (if String.isEmpty model.selectedPokeNum then
-                                    "none"
-
-                                 else
-                                    ""
-                                )
+                            [ class "container border p-0 mt-2"
+                            , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
                             ]
                             [ pokeFullView model ]
                         ]
@@ -324,11 +317,18 @@ pokeFullView model =
             statusViewLoading "Loading Pokemon"
 
         SuccessFull pokeFull ->
-            div []
-                [ div [ style "display" "grid" ] [ img [ width 200, style "margin" "auto", src model.selectedPokeImg ] [] ]
-                , div [ style "text-align" "center" ] [ h2 [ style "margin" "0px" ] [ text pokeFull.name ] ]
-                , div [ style "padding" "8px 4px" ] [ text pokeFull.desc ]
-                ]
+            statusViewPokeFull pokeFull model
+
+
+statusViewPokeFull : PokeFull -> Model -> Html Msg
+statusViewPokeFull poke model =
+    div [ class "container p-2" ]
+        [ div [ class "row" ]
+            [ div [ class "col-12 text-center" ] [ img [ width 200, src model.selectedPokeImg ] [] ]
+            , div [ class "col-12 text-center" ] [ h2 [] [ text poke.name ] ]
+            , div [ class "col-12" ] [ text poke.desc ]
+            ]
+        ]
 
 
 statusViewLoading : String -> Html Msg
