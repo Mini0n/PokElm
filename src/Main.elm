@@ -1,4 +1,4 @@
-module Main exposing (Msg(..), Pokemon, init, main, pokeDecoder, pokeDiv, pokeListDecoder, pokeListDiv, pokeString, subscriptions, update, view)
+module Main exposing (Msg(..), PokemonFirst, init, main, pokeDecoder, pokeDiv, pokeListDecoder, pokeListDiv, pokeString, subscriptions, update, view)
 
 import Browser
 import Html exposing (Html, b, br, div, h2, img, input, pre, text)
@@ -39,7 +39,7 @@ type alias Model =
 type PokeLoadMsg
     = Failure Http.Error
     | Loading
-    | Success (List Pokemon)
+    | Success (List PokemonFirst)
 
 
 type PokeFullLoadMsg
@@ -48,7 +48,23 @@ type PokeFullLoadMsg
     | SuccessFull PokeFull
 
 
-type alias Pokemon =
+type alias PokemonElem =
+    { num : String -- number
+    , nom : String -- name
+    , sta : String -- stamina
+    , atk : String -- attack
+    , def : String -- defense
+    , cpM : String -- max CP
+    , typ : String -- type
+    , cls : String -- class [normal, legendary, mythic]
+    , kms : String -- buddy km
+    , egg : String -- egg km
+    , can : String -- candies for evolution
+    , img : String -- pic (35x32px)
+    }
+
+
+type alias PokemonFirst =
     { num : String
     , name : String
     , img : String
@@ -66,23 +82,23 @@ type alias Pokemon =
 
 
 type alias PokeFull =
-    { id : Int
-    , name : String
-    , type1 : String
-    , type2 : String
-    , atk : Int
-    , sta : Int
-    , def : Int
-    , isMyth : Int
-    , isLegen : Int
-    , gen : Int
-    , candy : Int
-    , kms : Int
-    , desc : String
-    , weight : Float
-    , height : Float
-    , weather : List String
-    , cpList : PokeFullCPList
+    { num : Int -- number
+    , nom : String -- name
+    , tp1 : String -- type 1
+    , tp2 : String -- type 2
+    , atk : Int -- attack
+    , sta : Int -- stamina
+    , def : Int -- defense
+    , myt : Int -- mythic?
+    , leg : Int -- legendary?
+    , gen : Int -- generation
+    , can : Int -- candies for evolution
+    , kms : Int -- buddy km
+    , des : String -- pokedex info (description)
+    , wgt : Float -- weight
+    , hgt : Float -- height
+    , wea : List String -- weather boost
+    , cps : PokeFullCPList -- CPs
     }
 
 
@@ -90,8 +106,8 @@ type alias PokeFullCPList =
     { max : Int
     , wildMax : Int
     , wildMin : Int
-    , weatherMax : Int
-    , weatherMin : Int
+    , weathMax : Int
+    , weathMin : Int
     , eggMax : Int
     , eggMin : Int
     }
@@ -115,6 +131,14 @@ init _ =
 
 
 -- DECODER
+
+
+pokeListMsg : Cmd Msg
+pokeListMsg =
+    Http.get
+        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/list-en-PoGO.json"
+        , expect = Http.expectJson GotPokeList pokeListDecoder
+        }
 
 
 pokeFullDecoder : Decoder PokeFull
@@ -151,14 +175,31 @@ pokeFullCPListDecoder =
         (field "eggMin" int)
 
 
-pokeListDecoder : Decoder (List Pokemon)
+
+-- pokemonElemDecoder
+-- pokemo
+-- |> optional "num" string "" -- number
+-- |> optional "nom" string "" -- name
+-- |> optional "sta" string "" -- stamina
+-- |> optional "atk" string "" -- attack
+-- |> optional "def" string "" -- defense
+-- |> optional "cpM" string "" -- max CP
+-- |> optional "typ" string "" -- type
+-- |> optional "cls" string "" -- class [normal, legendary, mythic]
+-- |> optional "bud" string "" -- buddy km
+-- |> optional "egg" string "" -- egg km
+-- |> optional "can" string "" -- candies for evolution
+-- |> optional "img" string "" -- pic (35x32px)
+
+
+pokeListDecoder : Decoder (List PokemonFirst)
 pokeListDecoder =
     JD.list pokeDecoder
 
 
-pokeDecoder : Decoder Pokemon
+pokeDecoder : Decoder PokemonFirst
 pokeDecoder =
-    JD.succeed Pokemon
+    JD.succeed PokemonFirst
         |> required "number" string
         |> required "title_1" string
         |> required "uri" string
@@ -179,9 +220,9 @@ pokeDecoder =
 
 
 type Msg
-    = GotPokeList (Result Http.Error (List Pokemon))
+    = GotPokeList (Result Http.Error (List PokemonFirst))
     | PokeSearch String
-    | PokeDivSelected Pokemon
+    | PokeDivSelected PokemonFirst
     | PokeDivMouseOver String
     | PokeDivMouseOut String
     | GotPokeFull (Result Http.Error PokeFull)
@@ -325,8 +366,8 @@ statusViewPokeFull poke model =
     div [ class "container p-2" ]
         [ div [ class "row" ]
             [ div [ class "col-12 text-center" ] [ img [ width 200, src model.selectedPokeImg ] [] ]
-            , div [ class "col-12 text-center" ] [ h2 [] [ text poke.name ] ]
-            , div [ class "col-12" ] [ text poke.desc ]
+            , div [ class "col-12 text-center" ] [ h2 [] [ text poke.nom ] ]
+            , div [ class "col-12" ] [ text poke.des ]
             ]
         ]
 
@@ -352,7 +393,7 @@ statusViewError displayText error =
         ]
 
 
-pokeDiv : Pokemon -> Model -> Html Msg
+pokeDiv : PokemonFirst -> Model -> Html Msg
 pokeDiv poke model =
     div
         [ onClick (PokeDivSelected poke)
@@ -416,7 +457,7 @@ pokeDiv poke model =
         ]
 
 
-pokeListDiv : List Pokemon -> Model -> List (Html Msg)
+pokeListDiv : List PokemonFirst -> Model -> List (Html Msg)
 pokeListDiv pokes model =
     List.map (\poke -> pokeDiv poke model) pokes
 
@@ -425,7 +466,7 @@ pokeListDiv pokes model =
 -- HELPERS
 
 
-pokeString : Pokemon -> String
+pokeString : PokemonFirst -> String
 pokeString poke =
     String.toLower
         ("num:"
@@ -480,3 +521,7 @@ pokeThumb imgStr =
                     num + 4
     in
     "https://pokemongo.gamepress.gg" ++ String.slice start end imgStr
+
+
+
+-- TODO: https://www.reddit.com/r/elm/comments/91t937/is_it_possible_to_make_multiple_http_requests_in/
