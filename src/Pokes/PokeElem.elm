@@ -4,6 +4,10 @@ import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
 
 
+
+-- TYPES
+
+
 type alias PokeElem =
     { num : String -- number
     , nom : String -- name
@@ -43,8 +47,36 @@ pokeElemDecoder =
         |> optional "bud" string ""
         |> optional "egg" string ""
         |> optional "can" string ""
-        |> optional "img" string ""
+        |> optional "img" (JD.map pokeThumb string) ""
 
 
 
--- pic (35x32px)
+-- HELPERS
+
+
+pokeThumb : String -> String
+pokeThumb imgStr =
+    let
+        start =
+            case List.head (String.indexes "/sites" imgStr) of
+                Nothing ->
+                    0
+
+                Just num ->
+                    num
+
+        end =
+            case List.head (String.indexes ".png" imgStr) of
+                Nothing ->
+                    0
+
+                Just num ->
+                    num + 4
+    in
+    "https://pokemongo.gamepress.gg" ++ String.slice start end imgStr
+
+
+pokeElemListURL : String
+pokeElemListURL =
+    "https://api.codetabs.com/v1/proxy?quest="
+        ++ "https://gamepress.gg/sites/default/files/aggregatedjson/list-en-PoGO.json"
