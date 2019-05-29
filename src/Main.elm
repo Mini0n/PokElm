@@ -7,6 +7,7 @@ import Html.Events exposing (onClick, onInput, onMouseOut, onMouseOver)
 import Http
 import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
+import PokeElem exposing (..)
 
 
 
@@ -33,6 +34,7 @@ type alias Model =
     , selectedPokeImg : String
     , mouseOverPokeNum : String
     , pokeFullLoadStatus : PokeFullLoadMsg
+    , pokeElemListStatus : PokeElemListStatusMsg
     }
 
 
@@ -48,20 +50,27 @@ type PokeFullLoadMsg
     | SuccessFull PokeFull
 
 
-type alias PokemonElem =
-    { num : String -- number
-    , nom : String -- name
-    , sta : String -- stamina
-    , atk : String -- attack
-    , def : String -- defense
-    , cpM : String -- max CP
-    , typ : String -- type
-    , cls : String -- class [normal, legendary, mythic]
-    , kms : String -- buddy km
-    , egg : String -- egg km
-    , can : String -- candies for evolution
-    , img : String -- pic (35x32px)
-    }
+type PokeElemListStatusMsg
+    = PokeElemListFailed Http.Error
+    | PokeElemListLoading
+    | PokeElemListLoaded (List PokeElem)
+
+
+
+-- type alias PokemonElem =
+--     { num : String -- number
+--     , nom : String -- name
+--     , sta : String -- stamina
+--     , atk : String -- attack
+--     , def : String -- defense
+--     , cpM : String -- max CP
+--     , typ : String -- type
+--     , cls : String -- class [normal, legendary, mythic]
+--     , kms : String -- buddy km
+--     , egg : String -- egg km
+--     , can : String -- candies for evolution
+--     , img : String -- pic (35x32px)
+--     }
 
 
 type alias PokemonFirst =
@@ -121,6 +130,7 @@ init _ =
       , selectedPokeImg = ""
       , mouseOverPokeNum = ""
       , pokeFullLoadStatus = LoadingFull
+      , pokeElemListStatus = PokeElemListLoading
       }
     , Http.get
         { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
@@ -137,7 +147,7 @@ pokeListMsg : Cmd Msg
 pokeListMsg =
     Http.get
         { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/list-en-PoGO.json"
-        , expect = Http.expectJson GotPokeList pokeListDecoder
+        , expect = Http.expectJson GotPokeElemList pokeElemListDecoder
         }
 
 
@@ -175,23 +185,6 @@ pokeFullCPListDecoder =
         (field "eggMin" int)
 
 
-
--- pokemonElemDecoder
--- pokemo
--- |> optional "num" string "" -- number
--- |> optional "nom" string "" -- name
--- |> optional "sta" string "" -- stamina
--- |> optional "atk" string "" -- attack
--- |> optional "def" string "" -- defense
--- |> optional "cpM" string "" -- max CP
--- |> optional "typ" string "" -- type
--- |> optional "cls" string "" -- class [normal, legendary, mythic]
--- |> optional "bud" string "" -- buddy km
--- |> optional "egg" string "" -- egg km
--- |> optional "can" string "" -- candies for evolution
--- |> optional "img" string "" -- pic (35x32px)
-
-
 pokeListDecoder : Decoder (List PokemonFirst)
 pokeListDecoder =
     JD.list pokeDecoder
@@ -212,7 +205,7 @@ pokeDecoder =
         |> required "field_flee_rate" string
         |> required "field_primary_moves" string
         |> required "field_secondary_moves" string
-        |> required "pokemon_image_small" string
+        |> required "pokemon_image_small" (JD.map pokeThumb string)
 
 
 
@@ -221,11 +214,12 @@ pokeDecoder =
 
 type Msg
     = GotPokeList (Result Http.Error (List PokemonFirst))
+    | GotPokeFull (Result Http.Error PokeFull)
+    | GotPokeElemList (Result Http.Error (List PokeElem))
     | PokeSearch String
     | PokeDivSelected PokemonFirst
     | PokeDivMouseOver String
     | PokeDivMouseOut String
-    | GotPokeFull (Result Http.Error PokeFull)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -285,6 +279,14 @@ update msg model =
 
                 Err error ->
                     ( { model | pokeFullLoadStatus = FailureFull error }, Cmd.none )
+
+        GotPokeElemList result ->
+            case result of
+                Ok pokeElemList ->
+                    ( { model | pokeElemListStatus = PokeElemListLoaded pokeElemList }, Cmd.none )
+
+                Err error ->
+                    ( { model | pokeElemListStatus = PokeElemListFailed error }, Cmd.none )
 
 
 
