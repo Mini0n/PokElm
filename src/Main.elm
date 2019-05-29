@@ -65,19 +65,19 @@ type alias PokemonElem =
 
 
 type alias PokemonFirst =
-    { num : String
-    , name : String
-    , img : String
-    , sta : String
-    , atk : String
-    , def : String
-    , evo : String
-    , typ : String
-    , catch_rate : String
-    , flee_rate : String
-    , prim_atks : String
-    , secu_atks : String
-    , thumb : String
+    { num : String -- number
+    , nom : String -- name
+    , img : String -- image
+    , sta : String -- stamina
+    , atk : String -- attack
+    , def : String -- defense
+    , evo : String -- evolutions
+    , typ : String -- type
+    , crt : String -- catch rate
+    , frt : String -- flee rate
+    , pri : String -- primary attacks
+    , sec : String -- secondary attacks
+    , thm : String -- thumnails image
     }
 
 
@@ -428,13 +428,13 @@ pokeDiv poke model =
             [ style "width" "70px"
             , style "display" "grid"
             ]
-            [ img [ src (pokeThumb poke.thumb), width 35, style "margin" "auto" ] []
+            [ img [ src (pokeThumb poke.thm), width 35, style "margin" "auto" ] []
             ]
         , div
             [ style "width" "78%"
             , style "padding" "4px"
             ]
-            [ b [] [ text (poke.num ++ ": " ++ poke.name) ]
+            [ b [] [ text (poke.num ++ ": " ++ poke.nom) ]
             , text (" [ " ++ poke.typ ++ " ]")
             , div []
                 [ b [] [ text "Stats: " ]
@@ -450,8 +450,8 @@ pokeDiv poke model =
                 ]
             , div [ style "display" "none" ]
                 [ b [] [ text "Attacks:" ]
-                , div [] [ text ("- " ++ poke.prim_atks) ]
-                , div [] [ text ("- " ++ poke.secu_atks) ]
+                , div [] [ text ("- " ++ poke.pri) ]
+                , div [] [ text ("- " ++ poke.sec) ]
                 ]
             ]
         ]
@@ -472,7 +472,7 @@ pokeString poke =
         ("num:"
             ++ poke.num
             ++ "name:"
-            ++ poke.name
+            ++ poke.nom
             ++ "sta:"
             ++ poke.sta
             ++ "atk:"
