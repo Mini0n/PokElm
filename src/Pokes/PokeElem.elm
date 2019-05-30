@@ -19,8 +19,10 @@ type alias PokeElem =
     , cls : String -- class [normal, legendary, mythic]
     , kms : String -- buddy km
     , egg : String -- egg km
-    , can : String -- candies for evolution
+    , cdy : String -- candies for evolution
     , img : String -- pic (35x32px)
+    , alo : Bool -- Alolan?
+    -- missing: evolutions & movements [primary & secondary]
     }
 
 
@@ -48,6 +50,7 @@ pokeElemDecoder =
         |> optional "hatch" string ""
         |> optional "candy" string ""
         |> optional "image" (JD.map pokeThumb string) ""
+        |> optional "title_1" (JD.map pokeAlolan string) False
 
 
 
@@ -74,6 +77,11 @@ pokeThumb imgStr =
                     num + 4
     in
     "https://pokemongo.gamepress.gg" ++ String.slice start end imgStr
+
+
+pokeAlolan : String -> Bool
+pokeAlolan name =
+    String.contains "alolan" (String.toLower name)
 
 
 pokeElemListURL : String
