@@ -1,4 +1,4 @@
-module PokeElem exposing (PokeElem, pokeElemDecoder, pokeElemListDecoder)
+module PokeElem exposing (PokeElem, pokeElemDecoder, pokeElemListDecoder, pokeElemListURL)
 
 import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
@@ -36,18 +36,18 @@ pokeElemListDecoder =
 pokeElemDecoder : Decoder PokeElem
 pokeElemDecoder =
     JD.succeed PokeElem
-        |> optional "num" string ""
-        |> optional "nom" string ""
+        |> optional "number" string ""
+        |> optional "title_1" string ""
         |> optional "sta" string ""
         |> optional "atk" string ""
         |> optional "def" string ""
-        |> optional "cpM" string ""
-        |> optional "typ" string ""
-        |> optional "cls" string ""
-        |> optional "bud" string ""
-        |> optional "egg" string ""
-        |> optional "can" string ""
-        |> optional "img" (JD.map pokeThumb string) ""
+        |> optional "cp" string ""
+        |> optional "field_pokemon_type" string ""
+        |> optional "pokemon_class" string ""
+        |> optional "buddy" string ""
+        |> optional "hatch" string ""
+        |> optional "candy" string ""
+        |> optional "image" (JD.map pokeThumb string) ""
 
 
 
