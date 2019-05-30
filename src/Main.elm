@@ -132,10 +132,13 @@ init _ =
       , pokeFullLoadStatus = LoadingFull
       , pokeElemListStatus = PokeElemListLoading
       }
-    , Http.get
-        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
-        , expect = Http.expectJson GotPokeList pokeListDecoder
-        }
+    , Cmd.batch
+        [ Http.get
+            { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
+            , expect = Http.expectJson GotPokeList pokeListDecoder
+            }
+        , pokeElemListCmd
+        ]
     )
 
 
@@ -143,12 +146,9 @@ init _ =
 -- DECODER
 
 
-pokeListMsg : Cmd Msg
-pokeListMsg =
-    Http.get
-        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/list-en-PoGO.json"
-        , expect = Http.expectJson GotPokeElemList pokeElemListDecoder
-        }
+pokeElemListCmd : Cmd Msg
+pokeElemListCmd =
+    Http.get { url = pokeElemListURL, expect = Http.expectJson GotPokeElemList pokeElemListDecoder }
 
 
 pokeFullDecoder : Decoder PokeFull
