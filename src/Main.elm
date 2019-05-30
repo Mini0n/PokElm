@@ -56,23 +56,6 @@ type PokeElemListStatusMsg
     | PokeElemListLoaded (List PokeElem)
 
 
-
--- type alias PokemonElem =
---     { num : String -- number
---     , nom : String -- name
---     , sta : String -- stamina
---     , atk : String -- attack
---     , def : String -- defense
---     , cpM : String -- max CP
---     , typ : String -- type
---     , cls : String -- class [normal, legendary, mythic]
---     , kms : String -- buddy km
---     , egg : String -- egg km
---     , can : String -- candies for evolution
---     , img : String -- pic (35x32px)
---     }
-
-
 type alias PokemonFirst =
     { num : String -- number
     , nom : String -- name
@@ -317,21 +300,7 @@ view model =
                     [ div
                         [ class "sticky-top bg-light pb-2 pt-2"
                         ]
-                        [ div
-                            [ style "border" "1px solid black"
-                            , style "padding" "4px"
-                            ]
-                            [ input
-                                [ class "bg-light"
-                                , placeholder "search"
-                                , style "border" "none"
-                                , style "width" "100%"
-                                , style "outline" "none"
-                                , onInput PokeSearch
-                                , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
-                                ]
-                                []
-                            ]
+                        [ pokeSearchView
                         , div
                             [ class "container border p-0 mt-2"
                             , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
@@ -347,6 +316,38 @@ view model =
                       <|
                         pokeListDiv pokesList model
                     ]
+        ]
+
+
+pokeSearchView : Html Msg
+pokeSearchView =
+    div [ class "container" ]
+        [ div [ class "row" ]
+            [ div [ class "col-12" ]
+                [ input
+                    [ onInput PokeSearch
+                    , class "form-control shadow-none"
+                    , placeholder "search"
+                    ]
+                    []
+                ]
+            ]
+
+        -- , div
+        --     [ style "border" "1px solid black"
+        --     , style "padding" "4px"
+        --     ]
+        --     [ input
+        --         [ class "bg-light"
+        --         , placeholder "search"
+        --         , style "border" "none"
+        --         , style "width" "100%"
+        --         , style "outline" "none"
+        --         , onInput PokeSearch
+        --         , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
+        --         ]
+        --         []
+        --     ]
         ]
 
 
@@ -399,8 +400,9 @@ pokeDiv : PokemonFirst -> Model -> Html Msg
 pokeDiv poke model =
     div
         [ onClick (PokeDivSelected poke)
-        , onMouseOver (PokeDivMouseOver poke.num)
-        , onMouseOut (PokeDivMouseOut poke.num)
+
+        -- , onMouseOver (PokeDivMouseOver poke.num)
+        -- , onMouseOut (PokeDivMouseOut poke.num)
         , style "display" "flex"
         , style "border" "1px solid Silver"
         , style "border" "0px 0px"
