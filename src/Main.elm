@@ -160,12 +160,12 @@ pokeFullCPListDecoder : Decoder PokeFullCPList
 pokeFullCPListDecoder =
     JD.map7 PokeFullCPList
         (field "max" int)
+        (field "eggMax" int)
+        (field "eggMin" int)
         (field "wildMax" int)
         (field "wildMin" int)
         (field "weatherMax" int)
         (field "weatherMin" int)
-        (field "eggMax" int)
-        (field "eggMin" int)
 
 
 pokeListDecoder : Decoder (List PokemonFirst)
@@ -288,34 +288,60 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ case model.pokeLoadStatus of
-            Failure error ->
-                statusViewError "Loading Pokemons Failed" error
+        [ div []
+            [ case model.pokeElemListStatus of
+                PokeElemListFailed error ->
+                    statusViewError "Loading Pokemons Failed" error
 
-            Loading ->
-                statusViewLoading "Loading Pokemons"
+                PokeElemListLoading ->
+                    statusViewLoading "Loading Pokemons"
 
-            Success pokesList ->
-                div [ class "container bg-light" ]
-                    [ div
-                        [ class "sticky-top bg-light pb-2 pt-2"
-                        ]
-                        [ pokeSearchView
-                        , div
-                            [ class "container border p-0 mt-2"
-                            , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
+                PokeElemListLoaded pokeElemList ->
+                    div [ class "container bg-light" ]
+                        [ div
+                            [ class "sticky-top bg-light pb-2 pt-2"
                             ]
-                            [ pokeFullView model ]
+                            [ pokeSearchView
+                            , div
+                                [ class "container border p-0 mt-2"
+                                , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
+                                ]
+                                [ pokeFullView model ]
+                            ]
+                        , div [ class "list-group list-group-flush" ] <|
+                            pokeElemListView pokeElemList
                         ]
-                    , div
-                        [ style "border-top-style" "solid"
-                        , style "border-top-color" "black"
-                        , style "border-top-width" "1px"
-                        , style "margin-top" "8px"
+            ]
+        , div []
+            [ case model.pokeLoadStatus of
+                Failure error ->
+                    statusViewError "Loading Pokemons Failed" error
+
+                Loading ->
+                    statusViewLoading "Loading Pokemons"
+
+                Success pokesList ->
+                    div [ class "container bg-light" ]
+                        [ div
+                            [ class "sticky-top bg-light pb-2 pt-2"
+                            ]
+                            [ pokeSearchView
+                            , div
+                                [ class "container border p-0 mt-2"
+                                , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
+                                ]
+                                [ pokeFullView model ]
+                            ]
+                        , div
+                            [ style "border-top-style" "solid"
+                            , style "border-top-color" "black"
+                            , style "border-top-width" "1px"
+                            , style "margin-top" "8px"
+                            ]
+                          <|
+                            pokeListDiv pokesList model
                         ]
-                      <|
-                        pokeListDiv pokesList model
-                    ]
+            ]
         ]
 
 
@@ -370,7 +396,7 @@ statusViewPokeFull poke model =
         [ div [ class "row" ]
             [ div [ class "col-12 text-center" ] [ img [ width 200, src model.selectedPokeImg ] [] ]
             , div [ class "col-12 text-center" ] [ h2 [] [ text poke.nom ] ]
-            , div [ class "col-12" ] [ text poke.des ]
+            , div [ class "col-12 text-justify" ] [ text poke.des ]
             ]
         ]
 
