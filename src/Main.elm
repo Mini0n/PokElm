@@ -308,7 +308,7 @@ view model =
                                 ]
                                 [ pokeFullView model ]
                             ]
-                        , div [ class "list-group list-group-flush" ] <|
+                        , div [ class "list-group" ] <|
                             pokeElemListView pokeElemList model.pokeSearchStr
                         ]
             ]
