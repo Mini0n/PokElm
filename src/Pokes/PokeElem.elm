@@ -1,10 +1,17 @@
-module PokeElem exposing (PokeElem, pokeElemDecoder, pokeElemListDecoder, pokeElemListURL)
+module PokeElem exposing (PokeElem, pokeElemDecoder, pokeElemListDecoder, pokeElemListURL, pokeElemListView)
 
+-- HTML Imports
+
+import Browser
+import Html exposing (Html, a, b, br, div, h2, img, input, pre, span, text)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput, onMouseOut, onMouseOver)
 import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
 
 
 
+-- import View
 -- TYPES
 
 
@@ -21,12 +28,18 @@ type alias PokeElem =
     , egg : String -- egg km
     , cdy : String -- candies for evolution
     , img : String -- pic (35x32px)
-    , alo : Bool -- Alolan?
-    -- missing: evolutions & movements [primary & secondary]
+    , alo : Bool --   Alolan?
+
+    -- Missing:
+    -- evolutions & movements [primary & secondary]
+    -- weaknesses, strength-againts
+    -- rarity
     }
 
 
 
+-- type Msg
+--     = PokeElemViewClick
 -- DECODERS
 
 
@@ -51,6 +64,24 @@ pokeElemDecoder =
         |> optional "candy" string ""
         |> optional "image" (JD.map pokeThumb string) ""
         |> optional "title_1" (JD.map pokeAlolan string) False
+
+
+
+-- HELPERS (Views)
+
+
+pokeElemView : PokeElem -> Html msg
+pokeElemView poke =
+    a [ class "list-group-item list-group-item-action d-flex justify-content-between align-items-center" ]
+        [ text poke.nom
+        , span [ class " badge badge-secondary" ]
+            [ text poke.typ ]
+        ]
+
+
+pokeElemListView : List PokeElem -> List (Html msg)
+pokeElemListView pokes =
+    List.map pokeElemView pokes
 
 
 
