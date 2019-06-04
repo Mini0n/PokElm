@@ -2,12 +2,13 @@ module PokeElem exposing (PokeElem, pokeElemDecoder, pokeElemListDecoder, pokeEl
 
 -- HTML Imports
 
+import Array
 import Browser
 import Html exposing (Html, a, b, br, div, h2, img, input, pre, span, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseOut, onMouseOver)
 import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
-import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
+import Json.Decode.Pipeline exposing (optional)
 
 
 
@@ -22,7 +23,8 @@ type alias PokeElem =
     , atk : String -- attack
     , def : String -- defense
     , cpM : String -- max CP
-    , typ : String -- type
+    , tp1 : String -- type 1
+    , tp2 : String -- type 2
     , cls : String -- class [normal, legendary, mythic]
     , kms : String -- buddy km
     , egg : String -- egg km
@@ -57,7 +59,8 @@ pokeElemDecoder =
         |> optional "atk" string ""
         |> optional "def" string ""
         |> optional "cp" string ""
-        |> optional "field_pokemon_type" string ""
+        |> optional "field_pokemon_type" (JD.map (\types -> pokeType types False) string) ""
+        |> optional "field_pokemon_type" (JD.map (\types -> pokeType types True) string) ""
         |> optional "pokemon_class" string ""
         |> optional "buddy" string ""
         |> optional "hatch" string ""
@@ -75,7 +78,9 @@ pokeElemView poke =
     a [ class "list-group-item list-group-item-action d-flex justify-content-between align-items-center" ]
         [ text poke.nom
         , span [ class " badge badge-secondary" ]
-            [ text poke.typ ]
+            [ text poke.tp1 ]
+        , span [ class " badge badge-secondary" ]
+            [ text poke.tp2 ]
         ]
 
 
@@ -86,6 +91,27 @@ pokeElemListView pokes =
 
 
 -- HELPERS
+
+
+pokeType : String -> Bool -> String
+pokeType pokeTypes secondType =
+    let
+        index =
+            if secondType then
+                1
+
+            else
+                0
+
+        typesArray =
+            Array.fromList (String.split "," (String.replace " " "" pokeTypes))
+    in
+    case Array.get index typesArray of
+        Just ptype ->
+            ptype
+
+        Nothing ->
+            ""
 
 
 pokeThumb : String -> String
