@@ -29,7 +29,7 @@ main =
 
 type alias Model =
     { pokeLoadStatus : PokeLoadMsg
-    , pokeSearchString : String
+    , pokeSearchStr : String
     , selectedPokeNum : String
     , selectedPokeImg : String
     , mouseOverPokeNum : String
@@ -108,7 +108,7 @@ type alias PokeFullCPList =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { pokeLoadStatus = Loading
-      , pokeSearchString = ""
+      , pokeSearchStr = ""
       , selectedPokeNum = ""
       , selectedPokeImg = ""
       , mouseOverPokeNum = ""
@@ -217,7 +217,7 @@ update msg model =
                     ( { model | pokeLoadStatus = Failure error }, Cmd.none )
 
         PokeSearch searchStr ->
-            ( { model | pokeSearchString = String.toLower searchStr }, Cmd.none )
+            ( { model | pokeSearchStr = String.toLower searchStr }, Cmd.none )
 
         PokeDivMouseOver pokeNum ->
             ( { model | mouseOverPokeNum = pokeNum }, Cmd.none )
@@ -309,7 +309,7 @@ view model =
                                 [ pokeFullView model ]
                             ]
                         , div [ class "list-group list-group-flush" ] <|
-                            pokeElemListView pokeElemList
+                            pokeElemListView pokeElemList model.pokeSearchStr
                         ]
             ]
         , div []
@@ -347,18 +347,19 @@ view model =
 
 pokeSearchView : Html Msg
 pokeSearchView =
-    div [ class "container" ]
-        [ div [ class "row" ]
-            [ div [ class "col-12" ]
-                [ input
-                    [ onInput PokeSearch
-                    , class "form-control shadow-none"
-                    , placeholder "search"
-                    ]
-                    []
+    -- div [ class "container" ]
+    -- [
+    div [ class "row" ]
+        [ div [ class "col-12" ]
+            [ input
+                [ onInput PokeSearch
+                , class "form-control shadow-none"
+                , placeholder "search"
                 ]
+                []
             ]
 
+        -- ]
         -- , div
         --     [ style "border" "1px solid black"
         --     , style "padding" "4px"
@@ -433,7 +434,7 @@ pokeDiv poke model =
         , style "border" "1px solid Silver"
         , style "border" "0px 0px"
         , style "display"
-            (if String.contains model.pokeSearchString (pokeString poke) then
+            (if String.contains model.pokeSearchStr (pokeString poke) then
                 "flex"
 
              else
