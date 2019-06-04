@@ -9,6 +9,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseOut, onMouseOver)
 import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
 import Json.Decode.Pipeline exposing (optional)
+import PokeData as PData exposing (..)
 
 
 
@@ -25,17 +26,23 @@ type alias PokeElem =
     , cpM : String -- max CP
     , tp1 : String -- type 1
     , tp2 : String -- type 2
-    , cls : String -- class [normal, legendary, mythic]
     , kms : String -- buddy km
     , egg : String -- egg km
     , cdy : String -- candies for evolution
     , img : String -- pic (35x32px)
     , alo : Bool --   Alolan?
+    , cls : PokeClassType -- class [normal, legendary, mythic]
 
     -- Missing:
     -- evolutions & movements [primary & secondary]
     -- weaknesses, strength-againts
     -- rarity
+    }
+
+
+type alias PokeElemList =
+    { fullList : List PokeElem -- Full PokeElem List
+    , fltrList : List PokeElem -- Filtered (pokeSearchStr) PokeElem List
     }
 
 
@@ -58,15 +65,15 @@ pokeElemDecoder =
         |> optional "sta" string ""
         |> optional "atk" string ""
         |> optional "def" string ""
-        |> optional "cp" string ""
+        |> optional "cpM" string ""
         |> optional "field_pokemon_type" (JD.map (\types -> pokeType types False) string) ""
         |> optional "field_pokemon_type" (JD.map (\types -> pokeType types True) string) ""
-        |> optional "pokemon_class" string ""
         |> optional "buddy" string ""
         |> optional "hatch" string ""
         |> optional "candy" string ""
         |> optional "image" (JD.map pokeThumb string) ""
         |> optional "title_1" (JD.map pokeAlolan string) False
+        |> optional "pokemon_class" (JD.map pokeClassType string) PokeClassNrml
 
 
 
@@ -184,11 +191,27 @@ pokeToString poke =
         ++ poke.egg
         ++ "candy:"
         ++ poke.cdy
+        ++ "type:"
+        ++ pokeClass poke.cls
 
 
 
+-- ++ "class" ++ ( pokeClass (poke.cls)
 -- class (normal, legen, myth)
 -- cp
+
+
+pokeClass : PokeClassType -> String
+pokeClass poke =
+    case poke of
+        PokeClassMyth ->
+            "Mythical"
+
+        PokeClassLgnd ->
+            "Legendary"
+
+        _ ->
+            "Normal"
 
 
 pokeSearch : PokeElem -> String -> Bool

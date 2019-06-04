@@ -1,4 +1,4 @@
-module PokeData exposing (PokeType)
+module PokeData exposing (PokeClassType(..), PokeType, pokeClassType)
 
 
 type alias PokeType =
@@ -10,7 +10,36 @@ type alias PokeType =
     }
 
 
-type PokeClass
+type PokeClassType
     = PokeClassNrml -- Poke Class Normal
     | PokeClassLgnd -- Poke Class Legendary
     | PokeClassMyth -- Poke Class Mythical
+
+
+pokeClassType : String -> PokeClassType
+pokeClassType pokeType =
+    let
+        lowr =
+            String.toLower pokeType
+
+        myth =
+            String.contains "mythic" lowr
+
+        lgnd =
+            String.contains "legend" lowr
+
+        nrml =
+            String.contains "normal" lowr
+    in
+    if myth then
+        PokeClassMyth
+
+    else if lgnd then
+        PokeClassLgnd
+
+    else
+        PokeClassNrml
+
+
+
+-- unknown type could be added
