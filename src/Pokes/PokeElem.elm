@@ -73,20 +73,33 @@ pokeElemDecoder =
 -- HELPERS (Views)
 
 
-pokeElemView : PokeElem -> Html msg
-pokeElemView poke =
-    a [ class "list-group-item list-group-item-action d-flex justify-content-between align-items-center" ]
-        [ text poke.nom
-        , span [ class " badge badge-secondary" ]
-            [ text poke.tp1 ]
-        , span [ class " badge badge-secondary" ]
-            [ text poke.tp2 ]
+pokeElemView : PokeElem -> String -> Html msg
+pokeElemView poke pokeSearchStr =
+    a
+        [ class "list-group-item list-group-item-action justify-content-between align-items-center"
+        , style "display"
+            (if pokeSearch poke pokeSearchStr then
+                ""
+
+             else
+                "none"
+            )
+        ]
+        [ img [ class "rounded", src poke.img ] []
+        , text poke.nom
+        , div []
+            [ -- ,
+              span [ class "badge badge-secondary mr-1" ]
+                [ text poke.tp1 ]
+            , span [ class "badge badge-secondary" ]
+                [ text poke.tp2 ]
+            ]
         ]
 
 
-pokeElemListView : List PokeElem -> List (Html msg)
-pokeElemListView pokes =
-    List.map pokeElemView pokes
+pokeElemListView : List PokeElem -> String -> List (Html msg)
+pokeElemListView pokes pokeSearchStr =
+    List.map (\poke -> pokeElemView poke pokeSearchStr) pokes
 
 
 
@@ -145,3 +158,43 @@ pokeElemListURL : String
 pokeElemListURL =
     "https://api.codetabs.com/v1/proxy?quest="
         ++ "https://gamepress.gg/sites/default/files/aggregatedjson/list-en-PoGO.json"
+
+
+pokeToString : PokeElem -> String
+pokeToString poke =
+    "number:"
+        ++ poke.num
+        ++ "name:"
+        ++ poke.nom
+        ++ "sta:"
+        ++ poke.sta
+        ++ "def:"
+        ++ poke.def
+        ++ "atk:"
+        ++ poke.atk
+        ++ "type:"
+        ++ poke.tp1
+        ++ "type:"
+        ++ poke.tp2
+        ++ "kms:"
+        ++ poke.kms
+        ++ "kms:"
+        ++ poke.egg
+        ++ "egg:"
+        ++ poke.egg
+        ++ "candy:"
+        ++ poke.cdy
+
+
+
+-- class (normal, legen, myth)
+-- cp
+
+
+pokeSearch : PokeElem -> String -> Bool
+pokeSearch poke searchString =
+    let
+        searchable =
+            String.toLower (String.replace " " "" (pokeToString poke))
+    in
+    String.contains searchString searchable
