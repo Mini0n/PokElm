@@ -1,4 +1,4 @@
-module Main exposing (Msg(..), PokemonFirst, init, main, pokeDecoder, pokeDiv, pokeListDecoder, pokeListDiv, pokeString, subscriptions, update, view)
+module Main exposing (Msg(..), Pokemon, init, main, pokeDecoder, pokeDiv, pokeListDecoder, pokeListDiv, pokeString, subscriptions, update, view)
 
 import Browser
 import Html exposing (Html, b, br, div, h2, img, input, pre, text)
@@ -7,7 +7,6 @@ import Html.Events exposing (onClick, onInput, onMouseOut, onMouseOver)
 import Http
 import Json.Decode as JD exposing (Decoder, field, float, int, list, string)
 import Json.Decode.Pipeline exposing (custom, hardcoded, optional, required)
-import PokeElem exposing (..)
 
 
 
@@ -29,19 +28,18 @@ main =
 
 type alias Model =
     { pokeLoadStatus : PokeLoadMsg
-    , pokeSearchStr : String
+    , pokeSearchString : String
     , selectedPokeNum : String
     , selectedPokeImg : String
     , mouseOverPokeNum : String
     , pokeFullLoadStatus : PokeFullLoadMsg
-    , pokeElemListStatus : PokeElemListStatusMsg
     }
 
 
 type PokeLoadMsg
     = Failure Http.Error
     | Loading
-    | Success (List PokemonFirst)
+    | Success (List Pokemon)
 
 
 type PokeFullLoadMsg
@@ -50,47 +48,41 @@ type PokeFullLoadMsg
     | SuccessFull PokeFull
 
 
-type PokeElemListStatusMsg
-    = PokeElemListFailed Http.Error
-    | PokeElemListLoading
-    | PokeElemListLoaded (List PokeElem)
-
-
-type alias PokemonFirst =
-    { num : String -- number
-    , nom : String -- name
-    , img : String -- image
-    , sta : String -- stamina
-    , atk : String -- attack
-    , def : String -- defense
-    , evo : String -- evolutions
-    , typ : String -- type
-    , crt : String -- catch rate
-    , frt : String -- flee rate
-    , pri : String -- primary attacks
-    , sec : String -- secondary attacks
-    , thm : String -- thumnails image
+type alias Pokemon =
+    { num : String
+    , name : String
+    , img : String
+    , sta : String
+    , atk : String
+    , def : String
+    , evo : String
+    , typ : String
+    , catch_rate : String
+    , flee_rate : String
+    , prim_atks : String
+    , secu_atks : String
     }
 
 
 type alias PokeFull =
-    { num : Int -- number
-    , nom : String -- name
-    , tp1 : String -- type 1
-    , tp2 : String -- type 2
-    , atk : Int -- attack
-    , sta : Int -- stamina
-    , def : Int -- defense
-    , myt : Int -- mythic?
-    , leg : Int -- legendary?
-    , gen : Int -- generation
-    , can : Int -- candies for evolution
-    , kms : Int -- buddy km
-    , des : String -- pokedex info (description)
-    , wgt : Float -- weight
-    , hgt : Float -- height
-    , wea : List String -- weather boost
-    , cps : PokeFullCPList -- CPs
+    { id : Int
+    , name : String
+    , type1 : String
+    , type2 : String
+    , atk : Int
+    , sta : Int
+    , def : Int
+    , isMyth : Int
+    , isLegen : Int
+    , gen : Int
+    , candy : Int
+    , kms : Int
+    , desc : String
+    , weight : Float
+    , height : Float
+    , weather : List String
+
+    -- cpList : PokeFullCPList
     }
 
 
@@ -98,8 +90,8 @@ type alias PokeFullCPList =
     { max : Int
     , wildMax : Int
     , wildMin : Int
-    , weathMax : Int
-    , weathMin : Int
+    , weatherMax : Int
+    , weatherMin : Int
     , eggMax : Int
     , eggMin : Int
     }
@@ -108,30 +100,21 @@ type alias PokeFullCPList =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { pokeLoadStatus = Loading
-      , pokeSearchStr = ""
+      , pokeSearchString = ""
       , selectedPokeNum = ""
       , selectedPokeImg = ""
       , mouseOverPokeNum = ""
       , pokeFullLoadStatus = LoadingFull
-      , pokeElemListStatus = PokeElemListLoading
       }
-    , Cmd.batch
-        [ Http.get
-            { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
-            , expect = Http.expectJson GotPokeList pokeListDecoder
-            }
-        , pokeElemListCmd
-        ]
+    , Http.get
+        { url = pokeProxy ++ "https://gamepress.gg/sites/default/files/aggregatedjson/pokemon-data-full-en-PoGO.json"
+        , expect = Http.expectJson GotPokeList pokeListDecoder
+        }
     )
 
 
 
 -- DECODER
-
-
-pokeElemListCmd : Cmd Msg
-pokeElemListCmd =
-    Http.get { url = pokeElemListURL, expect = Http.expectJson GotPokeElemList pokeElemListDecoder }
 
 
 pokeFullDecoder : Decoder PokeFull
@@ -153,29 +136,32 @@ pokeFullDecoder =
         |> optional "weight" float -1.0
         |> optional "height" float -1.0
         |> optional "weatherInfluences" (list string) []
-        |> custom (JD.field "CPs" pokeFullCPListDecoder)
+
+
+
+-- |> custom (JD.at "CPs" (PokeFullCPList pokeFullCPListDecoder))
 
 
 pokeFullCPListDecoder : Decoder PokeFullCPList
 pokeFullCPListDecoder =
     JD.map7 PokeFullCPList
         (field "max" int)
-        (field "eggMax" int)
-        (field "eggMin" int)
         (field "wildMax" int)
         (field "wildMin" int)
         (field "weatherMax" int)
         (field "weatherMin" int)
+        (field "eggMax" int)
+        (field "eggMin" int)
 
 
-pokeListDecoder : Decoder (List PokemonFirst)
+pokeListDecoder : Decoder (List Pokemon)
 pokeListDecoder =
     JD.list pokeDecoder
 
 
-pokeDecoder : Decoder PokemonFirst
+pokeDecoder : Decoder Pokemon
 pokeDecoder =
-    JD.succeed PokemonFirst
+    JD.succeed Pokemon
         |> required "number" string
         |> required "title_1" string
         |> required "uri" string
@@ -188,7 +174,6 @@ pokeDecoder =
         |> required "field_flee_rate" string
         |> required "field_primary_moves" string
         |> required "field_secondary_moves" string
-        |> required "pokemon_image_small" (JD.map pokeThumb string)
 
 
 
@@ -196,13 +181,12 @@ pokeDecoder =
 
 
 type Msg
-    = GotPokeList (Result Http.Error (List PokemonFirst))
-    | GotPokeFull (Result Http.Error PokeFull)
-    | GotPokeElemList (Result Http.Error (List PokeElem))
+    = GotPokeList (Result Http.Error (List Pokemon))
     | PokeSearch String
-    | PokeDivSelected PokemonFirst
+    | PokeDivSelected Pokemon
     | PokeDivMouseOver String
     | PokeDivMouseOut String
+    | GotPokeFull (Result Http.Error PokeFull)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -217,7 +201,7 @@ update msg model =
                     ( { model | pokeLoadStatus = Failure error }, Cmd.none )
 
         PokeSearch searchStr ->
-            ( { model | pokeSearchStr = String.toLower searchStr }, Cmd.none )
+            ( { model | pokeSearchString = String.toLower searchStr }, Cmd.none )
 
         PokeDivMouseOver pokeNum ->
             ( { model | mouseOverPokeNum = pokeNum }, Cmd.none )
@@ -263,14 +247,6 @@ update msg model =
                 Err error ->
                     ( { model | pokeFullLoadStatus = FailureFull error }, Cmd.none )
 
-        GotPokeElemList result ->
-            case result of
-                Ok pokeElemList ->
-                    ( { model | pokeElemListStatus = PokeElemListLoaded pokeElemList }, Cmd.none )
-
-                Err error ->
-                    ( { model | pokeElemListStatus = PokeElemListFailed error }, Cmd.none )
-
 
 
 -- SUBSCRIPTIONS
@@ -287,154 +263,97 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ div []
-            [ case model.pokeElemListStatus of
-                PokeElemListFailed error ->
-                    statusViewError "Loading Pokemons Failed" error
+    case model.pokeLoadStatus of
+        Failure error ->
+            text "pokes failed :c"
 
-                PokeElemListLoading ->
-                    statusViewLoading "Loading Pokemons"
+        Loading ->
+            text "Loading..."
 
-                PokeElemListLoaded pokeElemList ->
-                    div [ class "container bg-light" ]
-                        [ div
-                            [ class "sticky-top bg-light pb-2 pt-2"
-                            ]
-                            [ pokeSearchView
-                            , div
-                                [ class "container border p-0 mt-2"
-                                , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
-                                ]
-                                [ pokeFullView model ]
-                            ]
-                        , div [ class "list-group" ] <|
-                            pokeElemListView pokeElemList model.pokeSearchStr
+        Success pokesList ->
+            div [ class "container bg-light" ]
+                [ div
+                    [ class "sticky-top bg-light pb-2 pt-2"
+                    ]
+                    [ div
+                        [ style "border" "1px solid black"
+                        , style "padding" "4px"
                         ]
-            ]
-        , div []
-            [ case model.pokeLoadStatus of
-                Failure error ->
-                    statusViewError "Loading Pokemons Failed" error
-
-                Loading ->
-                    statusViewLoading "Loading Pokemons"
-
-                Success pokesList ->
-                    div [ class "container bg-light" ]
-                        [ div
-                            [ class "sticky-top bg-light pb-2 pt-2"
+                        [ input
+                            [ class "bg-light"
+                            , placeholder "search"
+                            , style "border" "none"
+                            , style "width" "100%"
+                            , style "outline" "none"
+                            , style "font-family" "monospace"
+                            , onInput PokeSearch
+                            , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
                             ]
-                            [ pokeSearchView
-                            , div
-                                [ class "container border p-0 mt-2"
-                                , classList [ ( "d-none", String.isEmpty model.selectedPokeNum ) ]
-                                ]
-                                [ pokeFullView model ]
-                            ]
-                        , div
-                            [ style "border-top-style" "solid"
-                            , style "border-top-color" "black"
-                            , style "border-top-width" "1px"
-                            , style "margin-top" "8px"
-                            ]
-                          <|
-                            pokeListDiv pokesList model
+                            []
                         ]
-            ]
-        ]
+                    , div
+                        [ style "margin-top" "8px"
+                        , style "border" "1px solid black"
+                        , style "padding" "4px"
+                        , style "font-family" "monospace"
+                        , style "display"
+                            (if String.isEmpty model.selectedPokeNum then
+                                "none"
 
-
-pokeSearchView : Html Msg
-pokeSearchView =
-    -- div [ class "container" ]
-    -- [
-    div [ class "row" ]
-        [ div [ class "col-12" ]
-            [ input
-                [ onInput PokeSearch
-                , class "form-control shadow-none"
-                , placeholder "search"
+                             else
+                                ""
+                            )
+                        ]
+                        [ pokeFullView model ]
+                    ]
+                , pre
+                    [ style "border-top-style" "solid"
+                    , style "border-top-color" "black"
+                    , style "border-top-width" "1px"
+                    , style "margin-top" "8px"
+                    ]
+                  <|
+                    pokeListDiv pokesList model
                 ]
-                []
-            ]
-
-        -- ]
-        -- , div
-        --     [ style "border" "1px solid black"
-        --     , style "padding" "4px"
-        --     ]
-        --     [ input
-        --         [ class "bg-light"
-        --         , placeholder "search"
-        --         , style "border" "none"
-        --         , style "width" "100%"
-        --         , style "outline" "none"
-        --         , onInput PokeSearch
-        --         , title "You can filter your search with:\nnum:, name:, sta:, atk:, def:, evo:, type:"
-        --         ]
-        --         []
-        --     ]
-        ]
 
 
 pokeFullView : Model -> Html Msg
 pokeFullView model =
     case model.pokeFullLoadStatus of
         FailureFull error ->
-            statusViewError "Loading Pokemon Info Failed" error
+            div []
+                [ text "Loading Pokemon information failed :("
+                , br [] []
+                , text (Debug.toString error)
+                ]
 
         LoadingFull ->
-            statusViewLoading "Loading Pokemon"
+            div []
+                [ div [ class "text-center mt-2" ] [ text "Loading Pokemon..." ]
+                , div [ class "text-center m-4" ]
+                    [ div [ class "spinner-border text-dark" ] []
+                    ]
+                ]
 
         SuccessFull pokeFull ->
-            statusViewPokeFull pokeFull model
+            div []
+                [ div [ style "display" "grid" ] [ img [ width 200, style "margin" "auto", src model.selectedPokeImg ] [] ]
+                , div [ style "text-align" "center" ] [ h2 [ style "margin" "0px" ] [ text pokeFull.name ] ]
+                , div [ style "padding" "8px 4px" ] [ text pokeFull.desc ]
+                ]
 
 
-statusViewPokeFull : PokeFull -> Model -> Html Msg
-statusViewPokeFull poke model =
-    div [ class "container p-2" ]
-        [ div [ class "row" ]
-            [ div [ class "col-12 text-center" ] [ img [ width 200, src model.selectedPokeImg ] [] ]
-            , div [ class "col-12 text-center" ] [ h2 [] [ text poke.nom ] ]
-            , div [ class "col-12 text-justify" ] [ text poke.des ]
-            ]
-        ]
-
-
-statusViewLoading : String -> Html Msg
-statusViewLoading displayText =
-    div [ class "container" ]
-        [ div [ class "row text-center" ]
-            [ div [ class "col-12 py-4" ] [ text displayText ]
-            , div [ class "col-12 pb-4" ] [ div [ class "spinner-border text-dark" ] [] ]
-            ]
-        ]
-
-
-statusViewError : String -> Http.Error -> Html Msg
-statusViewError displayText error =
-    div [ class "container" ]
-        [ div [ class "row text-center" ]
-            [ div [ class "col-12 py-3" ] [ text displayText ]
-            , div [ class "col-12 py-2" ] [ img [ src "https://vignette.wikia.nocookie.net/es.pokemon/images/4/4c/Kabuto_NB.gif" ] [] ]
-            , div [ class "col-12 pt-3" ] [ pre [ class "text-danger text-truncate" ] [ text (String.left 143 (Debug.toString error)) ] ]
-            ]
-        ]
-
-
-pokeDiv : PokemonFirst -> Model -> Html Msg
+pokeDiv : Pokemon -> Model -> Html Msg
 pokeDiv poke model =
     div
         [ onClick (PokeDivSelected poke)
-
-        -- , onMouseOver (PokeDivMouseOver poke.num)
-        -- , onMouseOut (PokeDivMouseOut poke.num)
+        , onMouseOver (PokeDivMouseOver poke.num)
+        , onMouseOut (PokeDivMouseOut poke.num)
         , style "display" "flex"
         , style "border" "1px solid Silver"
         , style "border" "0px 0px"
         , style "display"
-            (if String.contains model.pokeSearchStr (pokeString poke) then
+            (if String.contains model.pokeSearchString (pokeString poke) then
                 "flex"
 
              else
@@ -459,13 +378,13 @@ pokeDiv poke model =
             [ style "width" "70px"
             , style "display" "grid"
             ]
-            [ img [ src (pokeThumb poke.thm), width 35, style "margin" "auto" ] []
+            [ img [ src poke.img, width 50, style "margin" "auto" ] []
             ]
         , div
             [ style "width" "78%"
             , style "padding" "4px"
             ]
-            [ b [] [ text (poke.num ++ ": " ++ poke.nom) ]
+            [ b [] [ text (poke.num ++ ": " ++ poke.name) ]
             , text (" [ " ++ poke.typ ++ " ]")
             , div []
                 [ b [] [ text "Stats: " ]
@@ -481,14 +400,14 @@ pokeDiv poke model =
                 ]
             , div [ style "display" "none" ]
                 [ b [] [ text "Attacks:" ]
-                , div [] [ text ("- " ++ poke.pri) ]
-                , div [] [ text ("- " ++ poke.sec) ]
+                , div [] [ text ("- " ++ poke.prim_atks) ]
+                , div [] [ text ("- " ++ poke.secu_atks) ]
                 ]
             ]
         ]
 
 
-pokeListDiv : List PokemonFirst -> Model -> List (Html Msg)
+pokeListDiv : List Pokemon -> Model -> List (Html Msg)
 pokeListDiv pokes model =
     List.map (\poke -> pokeDiv poke model) pokes
 
@@ -497,13 +416,13 @@ pokeListDiv pokes model =
 -- HELPERS
 
 
-pokeString : PokemonFirst -> String
+pokeString : Pokemon -> String
 pokeString poke =
     String.toLower
         ("num:"
             ++ poke.num
             ++ "name:"
-            ++ poke.nom
+            ++ poke.name
             ++ "sta:"
             ++ poke.sta
             ++ "atk:"
@@ -530,29 +449,3 @@ pokeStringEvos evos =
 pokeProxy : String
 pokeProxy =
     "https://api.codetabs.com/v1/proxy?quest="
-
-
-pokeThumb : String -> String
-pokeThumb imgStr =
-    let
-        start =
-            case List.head (String.indexes "/sites" imgStr) of
-                Nothing ->
-                    0
-
-                Just num ->
-                    num
-
-        end =
-            case List.head (String.indexes ".png" imgStr) of
-                Nothing ->
-                    0
-
-                Just num ->
-                    num + 4
-    in
-    "https://pokemongo.gamepress.gg" ++ String.slice start end imgStr
-
-
-
--- TODO: https://www.reddit.com/r/elm/comments/91t937/is_it_possible_to_make_multiple_http_requests_in/
