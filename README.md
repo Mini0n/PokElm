@@ -1,19 +1,22 @@
-# Elm Pokedex
+# PokElm 
+#### [ mini0n.github.io/PokElm/ ](https://mini0n.github.io/PokElm/)
 
-Create a Pokedex Elm application consuming [this](https://pokeapi.co/) backend.
 
-Display the List of Pokemon
+A Pokédex project build with [Elm](https://elm-lang.org/) focused on Pokémon GO
 
-- number
-- image
-- name.
+## Information
+Information is currently been read from [GO Hub's Pokemon GO database](https://db.pokemongohub.net/api/pokemon/)
 
-Just the first generation Pokemon (wink) (151 Pokemon)
+## Objectives
+Display & search pokemon data
+- Number
+- Thumb
+- Type(s)
+- Stats [attack, defense, stamina]
+- Evolution(s)
+- Pokedex entry information
+- Search
 
-When selecting a Pokemon, you should display more information related to that Pokemon, such as:
-
-- Moves
-- Type
-- Base Experience
-
-Bonus points: Display more information about each Pokemon
+## TODO
+There's lot of improvements planned to be done.
+I'll be updating this info as things get updated.
